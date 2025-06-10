@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,6 +19,7 @@ package com.example.dessertclicker
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -46,6 +47,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -107,6 +109,7 @@ class MainActivity : ComponentActivity() {
     override fun onRestart() {
         super.onRestart()
         Log.d(TAG, "onRestart Called")
+        Toast.makeText(this, " Ready to sell more? ", Toast.LENGTH_SHORT).show()
     }
 
     override fun onPause() {
@@ -174,6 +177,23 @@ private fun shareSoldDessertsInformation(intentContext: Context, dessertsSold: I
     }
 }
 
+private fun rateGameInPlayStore(context: Context) {
+    val packageName = context.packageName
+    // The URI scheme for the Google Play Store.
+    val uri = Uri.parse("market://details?id=$packageName")
+    val intent = Intent(Intent.ACTION_VIEW, uri)
+
+    try {
+        ContextCompat.startActivity(context, intent, null)
+    } catch (e: ActivityNotFoundException) {
+        // If the Play Store is not installed, open the page in a web browser.
+        val webUri = Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+        val webIntent = Intent(Intent.ACTION_VIEW, webUri)
+        ContextCompat.startActivity(context, webIntent, null)
+    }
+}
+
+
 @Composable
 private fun DessertClickerApp(
     desserts: List<Dessert>
@@ -203,12 +223,17 @@ private fun DessertClickerApp(
                         revenue = revenue
                     )
                 },
+                onRateButtonClicked = {
+                    rateGameInPlayStore(intentContext)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        start = WindowInsets.safeDrawing.asPaddingValues()
+                        start = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateStartPadding(layoutDirection),
-                        end = WindowInsets.safeDrawing.asPaddingValues()
+                        end = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateEndPadding(layoutDirection),
                     )
                     .background(MaterialTheme.colorScheme.primary)
@@ -238,6 +263,7 @@ private fun DessertClickerApp(
 @Composable
 private fun DessertClickerAppBar(
     onShareButtonClicked: () -> Unit,
+    onRateButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -251,15 +277,26 @@ private fun DessertClickerAppBar(
             color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.titleLarge,
         )
-        IconButton(
-            onClick = onShareButtonClicked,
-            modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Share,
-                contentDescription = stringResource(R.string.share),
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
+        Row {
+            IconButton(
+                onClick = onShareButtonClicked,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Share,
+                    contentDescription = stringResource(R.string.share),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            IconButton(
+                onClick = onRateButtonClicked,
+                modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = "Rate Game",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 }
